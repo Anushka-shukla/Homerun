@@ -1,31 +1,76 @@
-# HomeRun Delivery Partner MVP
+# HomeRun delivery partner app, MVP
 
-Delivery partner app and ops dashboard for a 60 minute construction materials
-delivery, built as a single React app with no backend.
+A working delivery partner app for HomeRun, plus an internal ops console that
+reads the same orders. Built as a demo, not a prototype deck: you can run a
+whole trip from order intake to cash collected.
 
-## Run it
+**Live demo:** _add your Vercel link_
+**Run locally:** `npm install && npm run dev`
 
-```bash
-npm install
-npm run dev      # http://localhost:5173
-npm run build    # static output in dist/
+---
+
+## 1. How I thought about the problem
+
+- **The 60 minute promise is the product.** HomeRun sells construction material
+  in 60 minutes. Everything the partner app does either protects that number or
+  explains where it went. So I built the clock in first and designed screens
+  around it, rather than designing screens and adding a timer later.
+
+- **This is not food delivery with heavier bags.** A cement order is 150 kg. It
+  cannot go on a bike, it cannot be carried across a store floor, and it is not
+  counted in "items". Three decisions came out of that: vehicle capacity gates
+  the assignment, pickup is split across loading gates, and everything the
+  partner counts is in trade units, not kilos.
+
+- **Where the hour actually goes is a question nobody can answer without stage
+  timestamps.** I stamped every status change from day one, which is what lets
+  the dashboard break the 60 minutes into assignment, packaging, pickup,
+  transit and drop-off without any extra tracking code.
+
+- **The partner is the real user, not the reviewer.** Short screens, one
+  decision per screen, big numbers, slide to confirm for anything irreversible,
+  and Hindi as a first class option picked before anything else happens.
+
+- **A narrow flow that fully works beats a broad flow that half works.** I built
+  the happy path end to end with real interactivity, mocked order intake behind
+  one button, and listed the edge cases I deliberately left out.
+
+---
+
+## 2. The KPI tree I am tracking
+
+```mermaid
+graph LR
+  NS[On-time delivery rate] --> A[Orders delivered within 60 min]
+  NS --> B[Total orders delivered]
+
+  A --> A1[Assignment time]
+  A --> A2[Packaging time]
+  A --> A3[Pickup time]
+  A --> A4[Transit time]
+  A --> A5[Drop-off time]
+
+  A1 --> A1a[Partners available]
+  A2 --> A2a[Time to pack each item]
+  A2 --> A2b[Queued orders]
+  A2 --> A2c[Packers available]
+  A3 --> A3a[Time to accept]
+  A3 --> A3b[In-store wayfinding]
+  A3 --> A3c[Load and collect]
+  A4 --> A4a[Route efficiency]
+  A4 --> A4b[Idle time]
+  A5 --> A5a[Finding the exact location]
+  A5 --> A5b[Waiting for the customer]
+  A5 --> A5c[Handover]
+  A5 --> A5d[Collecting payment]
+
+  B --> B1[Orders placed]
+  B --> B2[Regions served]
 ```
 
-Deploy: `vercel` from this folder, or push to Git and import. Vite preset,
-build command `npm run build`, output `dist`.
+Every branch is arithmetic on the timestamps, no separate analytics layer:
 
-## The ops console
-
-`src/ops/` holds the internal dashboard. It renders slices of the same
-`orders` array the partner screens mutate, so there is no second data source
-and nothing to sync.
-
-**Data model.** Every status change is stamped once, centrally, in the reducer:
-if an order's status differs from the previous state, `o.ts[status] = demo`.
-Every branch of the KPI tree is then arithmetic on those stamps, in
-`src/ops/metrics.js`:
-
-| KPI tree branch | computed as |
+| Branch | Computed as |
 | --- | --- |
 | Assignment time | `ts.assigned - ts.placed` |
 | Packaging time | `ts.ready - ts.routed` |
@@ -34,137 +79,164 @@ Every branch of the KPI tree is then arithmetic on those stamps, in
 | Drop-off time | `ts.completed - ts.arrived` |
 | On-time delivery rate | delivered orders where `ts.completed - ts.placed <= 60 min` |
 
-**Layout.** Left nav with Delivery management live and the other four tabs
-carrying a scope note. Inside it: headline KPI cards that filter the order
-table when clicked, a six column live pipeline with an SLA countdown per card,
-and a bar per stage showing where the 60 minutes actually goes. The Orders view
-adds search by order ID or customer, and filters for status, risk, ticket and
-dark store. Any row opens an order summary with its own stage times and the
-support ticket thread.
-
-**Seed.** Ten orders load across every stage from four dark stores, including
-delivered on time, delivered late, at risk, and three with support tickets, so
-the aggregates and the stage bars have something to say before you touch
+The stamping happens in one place. When an action changes an order's status,
+the reducer writes `order.ts[status] = now`. No screen has to remember to log
 anything.
 
-## The ops dashboard
+---
 
-The phone sits alone in the middle of the page by default. **Show ops
-dashboard** in the header opens the board to the right of it, and hiding it
-returns the phone to the centre. Both read the same `orders` array, so nothing
-can drift.
+## 3. What I built and what I mocked
 
-The board can also be popped into its own tab at `#/ops`. That tab receives a
-copy of the state over a `BroadcastChannel`, with a `localStorage` snapshot so a
-board opened later picks up immediately and so it still works where
-BroadcastChannel is missing. Commands travel the other way: the edge case
-triggers and Reset post an action back to the app tab, which is the only place
-the reducer runs.
-
-## Demo path
-
-1. Tap **Simulate new order** on the phone home screen. States 1 to 4 run as a
-   mock and are shown in the app as an incoming order card.
-2. The Matching a partner screen ranks every partner by distance and skips
-   anyone whose vehicle cannot take the load, then assigns the winner.
-3. Accept, ride to the store, work through the gate sequence, scan each gate picker QR.
-4. Slide to mark picked, ride to the drop, photo, OTP, collect cash, complete.
-
-Demo speed in the header runs the SLA clock at 1x, 10x or 30x.
-
-## Structure
-
-```
-src/
-  data.js                      catalog, gates, partners, customers, FLOW, helpers
-  state.js                     useReducer store: order factory, allocation, actions, edge cases
-  App.jsx                      routes to the app or the board, demo clock, timers, channel owner
-  OpsPage.jsx                  the board tab: subscribes to state, posts commands back
-  channel.js                   BroadcastChannel plus localStorage snapshot
-  styles.css                   all styling, no framework
-  components/
-    Phone.jsx                  maps order status to a screen
-    OpsPanel.jsx               stats, kanban, edge cases
-    ui.jsx                     SlaBar, SlideToConfirm, Items, ProgressCard
-    LeafletMap.jsx             OSM tiles, fixed route polyline, animated rider marker
-    maps.jsx                   GateMap, the compound driveway diagram
-    screens/HomeScreens.jsx    offline, searching, simulator, intake, allocation
-    screens/UpiScreen.jsx      UPI QR for the balance or the full amount
-    screens/PickupScreens.jsx  new order, to store, gate plan, gate, gate move, collected, scanner
-    screens/DeliveryScreens.jsx to customer, proof of delivery, payment, summary
-```
-
-## State machine
-
-`placed -> routed -> packing -> ready -> allocating -> assigned -> accepted -> at_store ->
-at_gate -> gate_move -> verified -> picked -> en_route -> arrived -> pod_ok ->
-paid -> completed`
-
-`gate_move` loops back to `at_gate` until every gate on the order is collected.
-Partner view and ops board read the same `orders` array, so nothing can drift.
-
-## Maps
-
-`LeafletMap.jsx` owns the street maps. Tiles come from
-`tile.openstreetmap.org`, markers are `divIcon` elements built from inline SVG
-so no image assets are fetched, and the polyline for each leg is generated in
-`data.js` by `legPath()`, which bends the line twice so it reads as a road
-rather than a straight hop.
-
-The dark store compound stays a drawn SVG in `maps.jsx`. Gate positions inside
-a private yard are not in OpenStreetMap, and the point of that view is the
-driving order between gates.
-
-## Language
-
-The partner app is bilingual, English and Hindi. `src/i18n.jsx` holds the
-dictionary and a `t(text, vars)` helper keyed on the English string itself, so
-a missing translation falls back to English rather than showing a key. Toasts
-are stored in state as a key plus variables and translated at render, not when
-they are created.
-
-A partner picks their language on first launch, before anything else, with both
-options shown in their own script. The ops nav carries a toggle so you can flip
-the phone mid demo. The console itself stays in English, since it is used by the
-internal team.
-
-## Units, not kilos
-
-Weight decides which vehicle can take the order, so it appears in allocation
-and on the order card. Everywhere the partner counts material with the
-customer it is trade units: bags, lengths, boxes, cans, bundles, pieces.
-`unitLine()` renders "4 lengths &middot; 3 m each"; `unitsOf()` totals them for the
-handover checklist and the trip summary.
-
-## Gates
-
-Pickup is split by material so heavy loads never cross the store floor.
-
-| Gate | Materials | Why |
+| Part | Status | Why |
 | --- | --- | --- |
-| A | cement, tiles, adhesive, UPVC pipes | vehicle backs into the loading dock |
-| B | paints, white cement, Fevicol | sealed bay away from cement dust |
-| C | wire, fittings, tools | counter handover |
+| Partner app, assignment to payment | Fully interactive | This is the assignment |
+| Order intake, states 1 to 4 | Mocked behind a simulator card on the home screen | No consumer app exists to place real orders |
+| Ops console | Live, reads the same orders | Shows the systems view without a second data source |
+| Maps | Real OpenStreetMap tiles, simulated movement | Real map, no GPS or permissions in a demo |
+| QR scan | Full scanner UI, confirms on tap | A camera permission prompt breaks a live demo |
+| Payments | UPI QR is a real `upi://pay` intent, nothing settles | Scannable, honest about what it does |
 
-Each order carries a `gates` array and a `gateIdx`. The app shows the numbered
-sequence on a store map, then one screen per gate with picker, bay and items.
+The demo clock runs at 10x by default, so a 60 minute SLA plays out in six
+minutes. You can switch to 1x or 30x in the header.
 
-## What is mocked
+---
 
-- Order intake, states 1 to 4, behind the simulator card
-- Maps are real OpenStreetMap tiles through Leaflet, with no API key. The route
-  is a fixed polyline between two Bengaluru coordinates and the marker is moved
-  along it by the trip progress value, so there is no GPS, no permission prompt
-  and no routing engine. Distances and ETAs are derived from those coordinates.
-- The QR step is a full scanner UI that confirms on tap, not a camera read
-- Payments start as cash on delivery. If the customer is short, or asks to pay
-  digitally, the app shows a real UPI QR generated with `qrcode-generator` from
-  a `upi://pay` intent. Any UPI app will read it, though nothing settles. There
-  is no pending or unpaid exit: the trip only closes once the full amount is in,
-  as cash, as UPI, or as a split of both.
+## 4. The states I designed
 
-## Edge cases wired in
+One order object moves through a state machine. Both the app and the dashboard
+read the same array.
 
-Partner declines or times out, wrong item at a gate scan, customer unreachable,
-cash short at the doorstep, partner drops off the network mid trip. SLA breach
-fires on its own once an order crosses 60 minutes.
+| State | Partner screen | What happens |
+| --- | --- | --- |
+| `placed` | Incoming order card | Mock consumer order created with items, address and COD |
+| `routed` | Incoming order card | Lands in the nearest dark store queue |
+| `packing` | Incoming order card | Picker is packing, partner can see it coming |
+| `ready` | Incoming order card | Packed, weight known, sitting at a gate |
+| `allocating` | Matching a partner | Every partner ranked by distance, anyone whose vehicle cannot take the load is skipped with a reason |
+| `assigned` | New order card | Items, gates, payout, load, accept or decline |
+| `accepted` | Ride to the store | Map, ETA, gate sequence preview |
+| `at_store` | Gate plan | Numbered route through the yard with what sits behind each gate |
+| `at_gate` | Gate detail | Order ID to read out, picker name, items at that gate, scan button |
+| `gate_move` | Move to next gate | Only appears when the order spans more than one gate |
+| `verified` | Loaded | Green tick per gate, slide to mark picked |
+| `picked` / `en_route` | Ride to the drop | Live route, ETA, call and chat, cash amount |
+| `arrived` | Handover | Unit by unit checklist, photo, OTP |
+| `pod_ok` | Collect cash | Amount due, cash collected, short on cash, or pay by UPI |
+| `paid` | Payment completed | How it settled, then complete order |
+| `completed` | Trip summary | Earnings, surge, units delivered, minutes of 60, then rate the customer |
+
+**The gate sequence is the part I am most confident about.** Most delivery
+apps stop at "go to the store". In a materials dark store, cement and pipes come
+off a loading dock, paint comes out of a sealed bay, and small electrical goods
+come over a counter. Sending one partner to one door means dragging 150 kg
+across a store floor. So each SKU carries its gate, the app builds the driving
+route through the yard, and the partner scans a separate picker QR at each gate.
+
+---
+
+## 5. Decisions worth explaining
+
+- **Vehicle capacity decides the assignment, not just distance.** A bike 0.9 km
+  away is skipped for a Tata Ace 0.4 km away when the load is 150 kg. The
+  allocation screen shows the partner why the job came to them.
+
+- **Units, not kilos, everywhere the partner counts.** "4 lengths, 3 m each" and
+  "3 bags, 50 kg each". Weight only appears where it decides the vehicle. A
+  summary saying "96 kg collected" tells a rider nothing about whether they have
+  everything.
+
+- **The trip cannot close unpaid.** There is no "log as pending" exit. If the
+  customer is short on cash, the app shows a UPI QR for the balance. Cash, UPI
+  or a split of both, but the order only completes when the money is in.
+
+- **The 60 minute countdown lives on the ops board, not the partner's screen.**
+  I had it on the phone first and removed it. A visible countdown pushes a rider
+  carrying 150 kg to ride faster. Ops needs the clock to intervene; the partner
+  needs the next instruction.
+
+- **One state object.** The partner app and the dashboard read the same
+  `orders` array. Nothing to sync, nothing to drift, and the dashboard is proof
+  the flow produces usable data.
+
+---
+
+## 6. Tech stack
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Frontend | React + Vite | Fastest path to responsive screens, no build ceremony |
+| State | `useReducer`, in memory | One source of truth, no backend to keep in sync |
+| Styling | Plain CSS with tokens | The brand palette is fixed by HomeRun's site, no framework needed |
+| Maps | Leaflet + OpenStreetMap | Free, no API key, no billing account |
+| QR | `qrcode-generator` | Renders inline SVG, so the UPI code is real and scannable |
+| Auth | Skipped | Not needed for a demo |
+| Hosting | Vercel | One command, free tier, live link |
+
+**On maps:** the tiles are real OpenStreetMap through Leaflet. The route is a
+fixed polyline between two real Bengaluru coordinates, and the marker moves
+along it with the trip progress. Distances and ETAs are computed from those
+coordinates with haversine, so a Koramangala drop really does pay more than a
+Domlur one. No routing engine, no GPS, no permission prompt. The dark store yard
+is a hand drawn SVG instead, because gate positions inside a private compound
+are not in OpenStreetMap and the point of that screen is the driving order
+between gates.
+
+---
+
+## 7. Edge cases
+
+**Built and triggerable from the ops console:**
+
+| Case | What the app does |
+| --- | --- |
+| Partner declines or times out | Reassigns to the next nearest eligible partner |
+| Wrong item at the gate scan | Blocks that gate only, flags the order, clears on rescan |
+| Customer unreachable | Logs the attempts, starts a wait before the return option opens |
+| Cash short at the doorstep | Opens a UPI QR for the balance so the trip still closes paid |
+| Partner drops off the network | Freezes the trip locally, keeps the SLA clock running, syncs on return |
+| SLA breach | Fires on its own at 60 minutes, flags the order red and raises a ticket |
+
+**Considered and cut from this MVP:**
+
+- Batching two drops on one trip inside the same 60 minute window
+- Return to store for a refused or damaged consignment, torn cement bags included
+- Weight mismatch between the packed slip and the weighbridge
+- Gate pass and security check-in at apartment and site entrances
+- Partner shift and payout ledger across a full day
+
+---
+
+## 8. Additional features
+
+**Ops console.** An internal dashboard sitting on the same orders. It opens with
+the on-time rate, orders booked, delivered on time, late or breaching, at risk,
+and average delivery time. Each card filters the order table. Below that, a live
+pipeline with an SLA countdown per order, then a bar per stage answering where
+the hour is going. The Orders view has search by order ID or customer, filters
+for status, risk, ticket and dark store, and an order detail with its own stage
+times and the full support ticket thread. Delivery management is live; order
+management, inventory, customer support and partner onboarding are stubs with a
+note on what they would read.
+
+**Hindi.** A partner picks their language on first launch, before anything else,
+with both options shown in their own script so the choice does not require
+reading English. The whole partner flow is translated, including toasts, which
+are stored as a key plus variables and translated at render. The console stays
+in English, since internal teams use it. There is a toggle in the demo controls
+to switch mid demo.
+
+**Customer rating.** A five star sheet after delivery and payment, matching what
+riders already do on Blinkit and Zomato.
+
+---
+
+## 9. What I would build next
+
+1. Real order intake from a consumer app, replacing the simulator
+2. Batching, since two drops in one direction inside the same window is the
+   single biggest lever on partner earnings
+3. A routing engine for real ETAs instead of a fixed polyline
+4. Alerting on the ops board rather than a passive red card, so a breach pages
+   someone
+5. Partner earnings and shift history, which is the screen riders actually open
+   most

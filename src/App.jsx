@@ -6,8 +6,6 @@ import OpsConsole from "./ops/OpsConsole.jsx";
 import { openChannel, writeSnapshot, opsUrl, isOpsTab } from "./channel.js";
 import { LangProvider } from "./i18n.jsx";
 
-const SPEEDS = [1, 10, 30];
-
 export default function App() {
   if (isOpsTab()) return <OpsPage />;
   return <PartnerApp />;
@@ -79,9 +77,6 @@ function PartnerApp() {
     return () => clearTimeout(id);
   }, [state.offlineMid]);
 
-  const mins = Math.floor(state.demo / 60000);
-  const secs = Math.floor((state.demo % 60000) / 1000);
-
   return (
     <>
       <header className="topbar">
@@ -97,19 +92,9 @@ function PartnerApp() {
           </div>
         </div>
         <div className="spacer" />
-        <div className="chip">
-          Demo clock {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
-        </div>
         <button className="openops" aria-pressed={showBoard} onClick={() => setShowBoard((v) => !v)}>
           {showBoard ? "Hide ops dashboard" : "Show ops dashboard"}
         </button>
-        <div className="speed-group" role="group" aria-label="Demo speed">
-          {SPEEDS.map((v) => (
-            <button key={v} aria-pressed={state.speed === v} onClick={() => dispatch({ type: "speed", value: v })}>
-              {v}x
-            </button>
-          ))}
-        </div>
       </header>
 
       <main className={"layout" + (showBoard ? " withboard" : " solo")}>
