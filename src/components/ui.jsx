@@ -86,8 +86,8 @@ export function ProgressCard({ state }) {
       <div className="grid2" style={{ marginTop: 10 }}>
         <div><div className="v">{rs(Math.round(state.earn))}</div><div className="k">{t("Earnings")}</div></div>
         <div><div className="v">{state.dist.toFixed(1)} km</div><div className="k">{t("Distance")}</div></div>
-        <div><div className="v">{state.trips}</div><div className="k">{t("Trips")}</div></div>
-        <div><div className="v">{t("{n} gig", { n: state.trips ? 1 : 0 })}</div><div className="k">{t("Sessions")}</div></div>
+        <div><div className="v">{state.trips}</div><div className="k">{t(state.trips === 1 ? "Trip" : "Trips")}</div></div>
+        <div><div className="v">{t("{n} gig", { n: state.trips ? 1 : 0 })}</div><div className="k">{t(state.trips ? "Session" : "Sessions")}</div></div>
       </div>
     </div>
   );
@@ -96,7 +96,6 @@ export function ProgressCard({ state }) {
 /* Shown once the order is delivered and the cash is in hand. */
 export function RatingSheet({ customer, value, onPick, onSubmit, onSkip }) {
   const t = useT();
-  const words = ["", "Rude or unsafe site", "Hard to reach", "Fine", "Helpful", "Great to deliver to"];
   return (
     <div className="sheetbg">
       <div className="sheet">
@@ -114,7 +113,6 @@ export function RatingSheet({ customer, value, onPick, onSubmit, onSkip }) {
             </button>
           ))}
         </div>
-        <div className="hintline">{t(value ? words[value] : "Tap a star")}</div>
         <button className="btn" disabled={!value} onClick={onSubmit}>{t("Submit rating")}</button>
         <button className="btn ghost" onClick={onSkip}>{t("Skip")}</button>
       </div>

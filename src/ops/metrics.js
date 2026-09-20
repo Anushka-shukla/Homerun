@@ -3,9 +3,9 @@ import { SLA_MS, unitsOf } from "../data.js";
 /* Every branch of the KPI tree is arithmetic on the stage timestamps the
    reducer stamps when an order changes status. Nothing is tracked twice. */
 export const STAGES = [
-  { key: "assignment", label: "Assignment", from: "placed", to: "assigned", why: "How long a packed order waits for a partner" },
   { key: "packaging", label: "Packaging", from: "routed", to: "ready", why: "Picker time inside the store" },
-  { key: "pickup", label: "Pickup", from: "accepted", to: "picked", why: "Ride to the store, gates, scans and loading" },
+  { key: "assignment", label: "Assignment", from: "ready", to: "assigned", why: "How long a packed order waits for a partner" },
+  { key: "pickup", label: "Pickup", from: "assigned", to: "picked", why: "Accepting, riding to the store, gates, scans and loading" },
   { key: "transit", label: "Transit", from: "picked", to: "arrived", why: "On the road to the customer" },
   { key: "dropoff", label: "Drop-off", from: "arrived", to: "completed", why: "Unload, proof of delivery and payment" }
 ];

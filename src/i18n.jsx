@@ -40,6 +40,7 @@ const HI = {
   Earnings: "कमाई",
   Distance: "दूरी",
   Trips: "ट्रिप",
+  Trip: "ट्रिप",
   Sessions: "सेशन",
   "{n} gig": "{n} गिग",
   "Searching for orders": "ऑर्डर खोजे जा रहे हैं",

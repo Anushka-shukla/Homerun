@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { LANGS } from "../i18n.jsx";
+import Trends from "./Trends.jsx";
 import { SLA_MS, STORES, GATES, rs, mmss, unitsOf, unitLine } from "../data.js";
 import {
   STAGES, PIPELINE, aggregates, stageAverages, stageMs, totalMs,
@@ -153,6 +154,8 @@ export default function OpsConsole({ state, live, dispatch }) {
                     })}
                   </div>
                 </section>
+
+                <Trends orders={orders} />
 
                 <section className="panel">
                   <div className="panelhead">

@@ -212,3 +212,26 @@ export function pathUpTo(path, t) {
   out.push(here);
   return out;
 }
+
+/* ---------- weekly history for the ops trends ----------
+   Live orders only cover today, so the week on week view is seeded. The
+   current week is computed from the live orders and appended as the last
+   point, which is why the last bar moves while you run the demo. */
+export const STAGE_TARGET = { assignment: 4, packaging: 8, pickup: 12, transit: 18, dropoff: 8 };
+
+export const WEEK_HISTORY = [
+  { label: "W31", orders: 186, onTime: 149, stages: { assignment: 5.1, packaging: 9.4, pickup: 13.2, transit: 21.8, dropoff: 9.1 },
+    reasons: [["Evening traffic on 100 Feet Road", 34], ["Picker queue at the heavy gate", 26], ["Customer unreachable at site", 18], ["Partner reassigned mid trip", 12], ["Cash handling at the door", 10]] },
+  { label: "W32", orders: 203, onTime: 167, stages: { assignment: 4.8, packaging: 9.0, pickup: 12.8, transit: 21.1, dropoff: 8.7 },
+    reasons: [["Evening traffic on 100 Feet Road", 31], ["Picker queue at the heavy gate", 27], ["Customer unreachable at site", 19], ["Partner reassigned mid trip", 13], ["Cash handling at the door", 10]] },
+  { label: "W33", orders: 198, onTime: 170, stages: { assignment: 4.4, packaging: 8.6, pickup: 12.1, transit: 20.4, dropoff: 8.4 },
+    reasons: [["Evening traffic on 100 Feet Road", 33], ["Picker queue at the heavy gate", 24], ["No four wheeler free", 17], ["Customer unreachable at site", 16], ["Cash handling at the door", 10]] },
+  { label: "W34", orders: 221, onTime: 179, stages: { assignment: 6.2, packaging: 8.9, pickup: 12.6, transit: 20.9, dropoff: 8.6 },
+    reasons: [["No four wheeler free", 35], ["Evening traffic on 100 Feet Road", 28], ["Picker queue at the heavy gate", 19], ["Customer unreachable at site", 12], ["Cash handling at the door", 6]] },
+  { label: "W35", orders: 234, onTime: 199, stages: { assignment: 4.1, packaging: 8.2, pickup: 11.6, transit: 19.6, dropoff: 8.1 },
+    reasons: [["Evening traffic on 100 Feet Road", 36], ["Picker queue at the heavy gate", 22], ["Customer unreachable at site", 18], ["No four wheeler free", 14], ["Cash handling at the door", 10]] },
+  { label: "W36", orders: 247, onTime: 214, stages: { assignment: 3.9, packaging: 7.8, pickup: 11.2, transit: 19.1, dropoff: 7.8 },
+    reasons: [["Evening traffic on 100 Feet Road", 38], ["Customer unreachable at site", 21], ["Picker queue at the heavy gate", 17], ["Cash handling at the door", 13], ["No four wheeler free", 11]] },
+  { label: "W37", orders: 259, onTime: 228, stages: { assignment: 3.7, packaging: 7.5, pickup: 10.9, transit: 18.7, dropoff: 7.6 },
+    reasons: [["Evening traffic on 100 Feet Road", 39], ["Customer unreachable at site", 22], ["Picker queue at the heavy gate", 15], ["Cash handling at the door", 13], ["No four wheeler free", 11]] }
+];
