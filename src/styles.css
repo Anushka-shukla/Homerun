@@ -608,9 +608,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   .phone{width:100%;max-width:none;padding:0;border-radius:0;box-shadow:none;background:transparent}
 
+  /* the mock status bar only exists to sell the phone frame on desktop. A real
+     phone already has one, with the real time in it. */
+  .statusbar{display:none}
+
   /* one scroll container on mobile: the page. The screen grows with its
      content and the nav bar rides the bottom of the viewport. */
-  .screen{border-radius:0;height:auto;min-height:calc(100vh - 72px)}
+  .screen{border-radius:0;height:auto;min-height:calc(100vh - 62px)}
   .body{overflow:visible;overscroll-behavior:auto}
   .navbar{position:sticky;bottom:0;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px)}
 
@@ -636,6 +640,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 }
 @supports (height: 100svh){
   @media (max-width: 680px){
-    .screen{min-height:calc(100svh - 72px)}
+    .screen{min-height:calc(100svh - 62px)}
   }
 }
