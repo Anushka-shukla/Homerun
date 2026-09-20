@@ -412,9 +412,9 @@ button{font:inherit;color:inherit;cursor:pointer}
   display:flex;flex-direction:column;gap:3px;
 }
 .kpi:hover{border-color:var(--ink-soft)}
-.kpi.big{grid-column:span 2;background:var(--ink);border-color:var(--ink)}
+.kpi.big{grid-column:span 2;background:#16130F;border-color:rgba(255,255,255,.14)}
 .kpi.big .klabel,.kpi.big .ksub{color:rgba(255,255,255,.62)}
-.kpi.big .kvalue{color:#fff;font-size:40px}
+.kpi.big .kvalue{color:#FFFFFF;font-size:40px}
 .klabel{font-size:11.5px;font-weight:700;color:var(--ink-soft)}
 .kvalue{font-size:26px;font-weight:800;letter-spacing:-.03em}
 .ksub{font-size:11px;color:var(--ink-soft);font-weight:500}
