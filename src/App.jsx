@@ -119,7 +119,10 @@ function PartnerApp() {
           </LangProvider>
         </section>
         {showBoard ? (
-          <OpsConsole state={state} live={live} dispatch={dispatch} />
+          <>
+            <button className="backtoapp" onClick={() => setShowBoard(false)}>&#8592; Partner app</button>
+            <OpsConsole state={state} live={live} dispatch={dispatch} />
+          </>
         ) : (
           <p className="boardhint">
             The ops dashboard reads the same orders. Show it to watch the 60 minute clock and the kanban move as you drive

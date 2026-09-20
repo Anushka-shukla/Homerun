@@ -98,6 +98,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   border:1px solid var(--line);background:var(--page);border-radius:999px;padding:7px 14px;
   font-size:12px;font-weight:700;
 }
+.backtoapp{display:none}
 .pip{width:7px;height:7px;border-radius:50%;background:#B4AFA5;display:inline-block;margin-right:2px}
 .pip.on{background:#1B7A45;box-shadow:0 0 0 3px rgba(27,122,69,.18)}
 @media (max-width:1040px){
@@ -617,6 +618,15 @@ button{font:inherit;color:inherit;cursor:pointer}
   .toasts{position:fixed;top:auto;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
   .scanner{position:fixed;z-index:60}
   .sheetbg{position:fixed;z-index:60}
+
+  /* On a phone the two views swap rather than stack. Nobody scrolls past a
+     full screen app to reach a dashboard underneath it. */
+  .layout.withboard .stage{display:none}
+  .backtoapp{
+    display:block;position:sticky;top:0;z-index:30;width:100%;text-align:left;
+    background:var(--panel);border:0;border-bottom:1px solid var(--line);
+    padding:12px 14px;font-size:13px;font-weight:700;color:var(--ink);
+  }
 
   .boardhint{margin:0;padding:16px;max-width:none}
   .console{padding:0 12px 18px}
