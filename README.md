@@ -8,34 +8,7 @@ reads the same orders.
 
 ---
 
-## 1. How I thought about the problem
-
-- **The 60 minute promise is the product.** HomeRun sells construction material
-  in 60 minutes. Everything the partner app does either protects that number or
-  explains where it went.
-
-- **This is not food delivery with heavier bags.** A cement order is 150 kg. It
-  cannot go on a bike, it cannot be carried across a store floor, and it is not
-  counted in "items". Three decisions came out of that: vehicle capacity gates
-  the assignment, pickup is split across loading gates, and everything the
-  partner counts is in trade units, not kilos.
-
-- **Where the hour actually goes is a question nobody can answer without stage
-  timestamps.** I stamped every status change from day one, which is what lets
-  the dashboard break the 60 minutes into assignment, packaging, pickup,
-  transit and drop-off without any extra tracking code.
-
-- **The partner is the real user, not the reviewer.** Short screens, one
-  decision per screen, big numbers, slide to confirm for anything irreversible,
-  and Hindi as a first class option picked before anything else happens.
-
-- **A narrow flow that fully works beats a broad flow that half works.** I built
-  the happy path end to end with real interactivity, mocked order intake behind
-  one button, and listed the edge cases I deliberately left out.
-
----
-
-## 2. The KPI tree I am tracking
+## 1. The KPI tree I am tracking
 
 ```mermaid
 graph LR
@@ -66,7 +39,7 @@ graph LR
   B --> B2[Regions served]
 ```
 
-Every branch is arithmetic on the timestamps, no separate analytics layer:
+Metrics Breakdown:
 
 | Branch | Computed as |
 | --- | --- |
@@ -77,29 +50,11 @@ Every branch is arithmetic on the timestamps, no separate analytics layer:
 | Drop-off time | `ts.completed - ts.arrived` |
 | On-time delivery rate | delivered orders where `ts.completed - ts.placed <= 60 min` |
 
-The stamping happens in one place. When an action changes an order's status,
-the reducer writes `order.ts[status] = now`. No screen has to remember to log
-anything.
+
 
 ---
 
-## 3. What I built and what I mocked
-
-| Part | Status | Why |
-| --- | --- | --- |
-| Partner app, assignment to payment | Fully interactive | This is the assignment |
-| Order intake, states 1 to 4 | Mocked behind a simulator card on the home screen | No consumer app exists to place real orders |
-| Ops console | Live, reads the same orders | Shows the systems view without a second data source |
-| Maps | Real OpenStreetMap tiles, simulated movement | Real map, no GPS or permissions in a demo |
-| QR scan | Full scanner UI, confirms on tap | A camera permission prompt breaks a live demo |
-| Payments | UPI QR is a real `upi://pay` intent, nothing settles | Scannable, honest about what it does |
-
-The demo clock runs at 10x by default, so a 60 minute SLA plays out in six
-minutes. You can switch to 1x or 30x in the header.
-
----
-
-## 4. The states I designed
+## 2. The states I designed
 
 One order object moves through a state machine. Both the app and the dashboard
 read the same array.
@@ -123,16 +78,12 @@ read the same array.
 | `paid` | Payment completed | How it settled, then complete order |
 | `completed` | Trip summary | Earnings, surge, units delivered, minutes of 60, then rate the customer |
 
-**The gate sequence is the part I am most confident about.** Most delivery
-apps stop at "go to the store". In a materials dark store, cement and pipes come
-off a loading dock, paint comes out of a sealed bay, and small electrical goods
-come over a counter. Sending one partner to one door means dragging 150 kg
-across a store floor. So each SKU carries its gate, the app builds the driving
-route through the yard, and the partner scans a separate picker QR at each gate.
+In a materials dark store, cement and pipes come off a loading dock, paint comes out of a sealed bay, and small electrical goods come over a counter. Sending one partner to one door means dragging 150 kg
+across a store floor. So each SKU carries its gate, the app builds the driving route through the yard, and the partner scans a separate picker QR at each gate.
 
 ---
 
-## 5. Decisions worth explaining
+## 3. Logic
 
 - **Vehicle capacity decides the assignment, not just distance.** A bike 0.9 km
   away is skipped for a Tata Ace 0.4 km away when the load is 150 kg. The
@@ -147,41 +98,25 @@ route through the yard, and the partner scans a separate picker QR at each gate.
   customer is short on cash, the app shows a UPI QR for the balance. Cash, UPI
   or a split of both, but the order only completes when the money is in.
 
-- **The 60 minute countdown lives on the ops board, not the partner's screen.**
-  I had it on the phone first and removed it. A visible countdown pushes a rider
-  carrying 150 kg to ride faster. Ops needs the clock to intervene; the partner
-  needs the next instruction.
-
-- **One state object.** The partner app and the dashboard read the same
-  `orders` array. Nothing to sync, nothing to drift, and the dashboard is proof
-  the flow produces usable data.
+- **One state object.** The app and the dashboard read the same `orders` array. 
 
 ---
 
-## 6. Tech stack
+## 4. Tech stack
 
-| Layer | Choice | Why |
-| --- | --- | --- |
-| Frontend | React + Vite | Fastest path to responsive screens, no build ceremony |
-| State | `useReducer`, in memory | One source of truth, no backend to keep in sync |
-| Styling | Plain CSS with tokens | The brand palette is fixed by HomeRun's site, no framework needed |
-| Maps | Leaflet + OpenStreetMap | Free, no API key, no billing account |
-| QR | `qrcode-generator` | Renders inline SVG, so the UPI code is real and scannable |
-| Auth | Skipped | Not needed for a demo |
-| Hosting | Vercel | One command, free tier, live link |
+| Layer | Choice |
+| --- | --- |
+| Frontend | React + Vite | 
+| State | `useReducer`, in memory | 
+| Styling | Plain CSS with tokens | 
+| Maps | Leaflet + OpenStreetMap | 
+| QR | `qrcode-generator` | 
+| Hosting | Vercel | 
 
-**On maps:** the tiles are real OpenStreetMap through Leaflet. The route is a
-fixed polyline between two real Bengaluru coordinates, and the marker moves
-along it with the trip progress. Distances and ETAs are computed from those
-coordinates with haversine, so a Koramangala drop really does pay more than a
-Domlur one. No routing engine, no GPS, no permission prompt. The dark store yard
-is a hand drawn SVG instead, because gate positions inside a private compound
-are not in OpenStreetMap and the point of that screen is the driving order
-between gates.
 
 ---
 
-## 7. Edge cases
+## 5. Edge cases
 
 **Built and triggerable from the ops console:**
 
@@ -194,17 +129,10 @@ between gates.
 | Partner drops off the network | Freezes the trip locally, keeps the SLA clock running, syncs on return |
 | SLA breach | Fires on its own at 60 minutes, flags the order red and raises a ticket |
 
-**Considered and cut from this MVP:**
-
-- Batching two drops on one trip inside the same 60 minute window
-- Return to store for a refused or damaged consignment, torn cement bags included
-- Weight mismatch between the packed slip and the weighbridge
-- Gate pass and security check-in at apartment and site entrances
-- Partner shift and payout ledger across a full day
 
 ---
 
-## 8. Additional features
+## 6. Additional features
 
 **Ops console.** An internal dashboard sitting on the same orders. It opens with
 the on-time rate, orders booked, delivered on time, late or breaching, at risk,
@@ -223,18 +151,4 @@ are stored as a key plus variables and translated at render. The console stays
 in English, since internal teams use it. There is a toggle in the demo controls
 to switch mid demo.
 
-**Customer rating.** A five star sheet after delivery and payment, matching what
-riders already do on Blinkit and Zomato.
-
----
-
-## 9. What I would build next
-
-1. Real order intake from a consumer app, replacing the simulator
-2. Batching, since two drops in one direction inside the same window is the
-   single biggest lever on partner earnings
-3. A routing engine for real ETAs instead of a fixed polyline
-4. Alerting on the ops board rather than a passive red card, so a breach pages
-   someone
-5. Partner earnings and shift history, which is the screen riders actually open
-   most
+**Customer rating.** A five star sheet after delivery and payment.
