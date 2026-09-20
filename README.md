@@ -8,7 +8,7 @@ reads the same orders.
 
 ---
 
-## 1. The KPI tree I am tracking
+## 1. KPI tree 
 
 ```mermaid
 graph LR
@@ -54,7 +54,7 @@ Metrics Breakdown:
 
 ---
 
-## 2. The states I designed
+## 2. States designed
 
 One order object moves through a state machine. Both the app and the dashboard
 read the same array.
