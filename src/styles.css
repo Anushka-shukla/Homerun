@@ -610,7 +610,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   /* one scroll container on mobile: the page. The screen grows with its
      content and the nav bar rides the bottom of the viewport. */
-  .screen{border-radius:0;height:auto;min-height:calc(100vh - 96px)}
+  .screen{border-radius:0;height:auto;min-height:calc(100vh - 72px)}
   .body{overflow:visible;overscroll-behavior:auto}
   .navbar{position:sticky;bottom:0;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px)}
 
@@ -636,6 +636,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 }
 @supports (height: 100svh){
   @media (max-width: 680px){
-    .screen{min-height:calc(100svh - 96px)}
+    .screen{min-height:calc(100svh - 72px)}
   }
 }
