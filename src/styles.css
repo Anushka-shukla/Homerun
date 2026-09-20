@@ -643,3 +643,54 @@ button{font:inherit;color:inherit;cursor:pointer}
     .screen{min-height:calc(100svh - 62px)}
   }
 }
+
+/* resume card on the home feed */
+.resume{
+  display:flex;align-items:center;gap:12px;margin-top:14px;background:#FDF6DE;border:1px solid #EFC42E;
+  border-radius:14px;padding:12px 14px;
+}
+.resume .rlabel{font-size:11px;font-weight:700;color:#8A6B08}
+.resume .rid{font-size:15px;font-weight:800;color:#1A1713;margin-top:1px}
+.resume .btn{margin:0;width:auto;padding:10px 16px;font-size:13px;flex:none}
+
+/* emergency icon while a trip is live */
+.icon.sos{background:#FBE9E5}
+.icon:disabled{opacity:.35}
+
+/* the yard, on real tiles */
+.yardmap{height:250px;width:100%;border-radius:10px;overflow:hidden;background:#E8EBE4}
+.gatepin{position:relative;width:40px;height:40px;display:grid;place-items:center}
+.gatepin .gletter{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  font-size:14px;font-weight:800;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);
+}
+.gatepin.now .gletter{box-shadow:0 0 0 4px rgba(26,23,19,.18),0 2px 6px rgba(0,0,0,.28)}
+.gatepin .gseq{
+  position:absolute;top:0;right:0;width:17px;height:17px;border-radius:50%;background:#1A1713;color:#fff;
+  font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid #fff;
+}
+.entrypin{
+  background:rgba(26,23,19,.9);color:#fff;border-radius:999px;padding:3px 10px;
+  font-size:10px;font-weight:800;text-align:center;white-space:nowrap;
+}
+.vanpin{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* photo step */
+.photo{height:150px;border-color:#C9C5BC;background:#FBFBF9}
+.photo.has{border-style:solid;padding:0}
+.photo-empty{gap:10px}
+.camring{
+  width:52px;height:52px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;
+}
+.photo-empty .phead{font-size:13.5px;font-weight:800;color:#1A1713}
+.photo-empty .psub{font-size:11.5px;font-weight:500;color:#8C867D}
+
+/* UPI payment landing */
+.paidping{
+  display:flex;align-items:center;gap:9px;margin-top:12px;background:#E7F3EB;border-radius:12px;
+  padding:11px 13px;font-size:12.5px;font-weight:700;color:#14603A;
+}
+.paidping .tick{
+  width:22px;height:22px;border-radius:50%;background:#1B7A45;color:#fff;display:grid;place-items:center;
+  font-size:12px;flex:none;
+}

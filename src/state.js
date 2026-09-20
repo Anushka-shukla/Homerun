@@ -1,4 +1,4 @@
-import { CATALOG, GATES, CUSTOMERS, PARTNERS, FLOW, SLA_MS, STORE, STORES, PARTNER_START, stage, pick, rs, legPath, pathLength } from "./data.js";
+import { CATALOG, GATES, CUSTOMERS, PARTNERS, FLOW, SLA_MS, STORE, STORES, PARTNER_START, stage, pick, rs, legPath, pathLength, canCarry, isBulky } from "./data.js";
 
 let toastSeq = 1;
 
@@ -25,6 +25,7 @@ export function initialState() {
     lang: "en",
     onboarded: false,
     rating: null,
+    atHome: false,
     upi: null,
     breached: {},
     toasts: [],
@@ -185,7 +186,7 @@ function seedBackground(s) {
 
 function eligible(s, o) {
   return s.partners
-    .filter((p) => p.status === "available" && p.cap >= o.kg)
+    .filter((p) => p.status === "available" && canCarry(p, o))
     .sort((a, b) => a.km - b.km);
 }
 
@@ -210,7 +211,7 @@ function runMocks(s) {
     const i = stage(o);
     if (i < FLOW.length - 1) o.status = FLOW[i + 1];
     if (o.status === "assigned") {
-      const free = s.partners.filter((p) => p.status === "available" && p.id !== s.me && p.cap >= o.kg);
+      const free = s.partners.filter((p) => p.status === "available" && p.id !== s.me && canCarry(p, o));
       o.partner = free.length ? free[0].id : "p3";
     }
     o.next = s.demo + (25 + Math.random() * 120) * 1000;
@@ -364,6 +365,36 @@ function act(s, a) {
     case "rate_skip":
       s.rating = null;
       break;
+    case "go_home":
+      s.atHome = true;
+      break;
+    case "resume":
+      s.atHome = false;
+      break;
+    case "emergency": {
+      /* The partner cannot continue. They are freed, the order goes to the
+         next eligible partner and carries on without them. */
+      const old = o.partner;
+      const me = s.partners.find((p) => p.id === old);
+      if (me) me.status = "available";
+      const next = eligible(s, o).find((p) => p.id !== old);
+      o.flags = [...o.flags, "partner emergency"];
+      o.status = next ? "assigned" : "ready";
+      o.partner = next ? next.id : null;
+      o.gateIdx = 0;
+      o.gateDone = {};
+      o.mock = true;
+      o.next = s.demo + 25000;
+      s.liveId = null;
+      s.atHome = true;
+      s.progress = 0;
+      s.photo = false;
+      s.otp = "";
+      s.upi = null;
+      say(s, next ? "Trip handed over. {name} is taking this order." : "Trip released. Ops is finding another partner.",
+          next ? { name: next.name } : null, true);
+      break;
+    }
     case "next_order":
       s.liveId = null;
       s.upi = null;

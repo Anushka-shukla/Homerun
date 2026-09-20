@@ -7,6 +7,39 @@ export const STORE = {
 /* Where the partner is sitting when the order lands. */
 export const PARTNER_START = [12.9721, 77.6469];
 
+/* The compound: a building with a service road around it. Gates sit on that
+   road, so the route drawn between them is the road the vehicle takes. */
+export const YARD = {
+  building: [[12.97858, 77.64055], [12.97858, 77.64105], [12.97822, 77.64105], [12.97822, 77.64055]],
+  loop: {
+    entry: [12.97812, 77.64080],
+    sw: [12.97812, 77.64045],
+    nw: [12.97868, 77.64045],
+    ne: [12.97868, 77.64115],
+    se: [12.97812, 77.64115]
+  },
+  gates: { A: [12.97840, 77.64045], B: [12.97868, 77.64080], C: [12.97840, 77.64115] }
+};
+
+/* Clockwise from the entry, the way the yard is one way. */
+export function yardRoute(gates) {
+  const L = YARD.loop;
+  const G = YARD.gates;
+  const full = [
+    { at: L.entry }, { at: L.sw }, { at: G.A, gate: "A" }, { at: L.nw },
+    { at: G.B, gate: "B" }, { at: L.ne }, { at: G.C, gate: "C" }
+  ];
+  const last = gates[gates.length - 1];
+  const end = full.findIndex((p) => p.gate === last);
+  return full.slice(0, end + 1).map((p) => p.at);
+}
+
+export function yardPointOf(gates, doneGates) {
+  const done = gates.filter((g) => doneGates[g]);
+  if (!done.length) return YARD.loop.entry;
+  return YARD.gates[done[done.length - 1]];
+}
+
 export const SLA_MS = 60 * 60 * 1000;
 
 /* The partner app runs out of DS-04. The others exist so the console has a
@@ -23,14 +56,14 @@ export const STORES = [
    actually counts it in. Pipes are lengths, wire is a bundle, paint is a can.
    kg is only used to match the order to a vehicle. */
 export const CATALOG = [
-  { n: "UltraTech PPC Cement", q: 3, unit: "bags", size: "50 kg each", kg: 150, rs: 1185, ic: "\uD83E\uDDF1", g: "A", bay: "Floor bay G2" },
-  { n: "Johnson Vitrified Tile 600x600", q: 4, unit: "boxes", size: "4 tiles each", kg: 88, rs: 2960, ic: "\u25A6", g: "A", bay: "Floor bay G5" },
-  { n: "Supreme UPVC Pipe 3 inch", q: 4, unit: "lengths", size: "3 m each", kg: 24, rs: 1480, ic: "\uD83E\uDEA0", g: "A", bay: "Pipe rack P1" },
-  { n: "Roff Tile Adhesive T20", q: 2, unit: "bags", size: "20 kg each", kg: 40, rs: 940, ic: "\uD83E\uDDF4", g: "A", bay: "Floor bay G3" },
+  { n: "UltraTech PPC Cement", q: 3, unit: "bags", size: "50 kg each", kg: 150, rs: 1185, ic: "\uD83E\uDDF1", g: "A", bay: "Floor bay G2", bulky: true },
+  { n: "Johnson Vitrified Tile 600x600", q: 4, unit: "boxes", size: "4 tiles each", kg: 88, rs: 2960, ic: "\u25A6", g: "A", bay: "Floor bay G5", bulky: true },
+  { n: "Supreme UPVC Pipe 3 inch", q: 4, unit: "pipes", size: "3 m long each", kg: 24, rs: 1480, ic: "\uD83E\uDEA0", g: "A", bay: "Pipe rack P1", bulky: true },
+  { n: "Roff Tile Adhesive T20", q: 2, unit: "bags", size: "20 kg each", kg: 40, rs: 940, ic: "\uD83E\uDDF4", g: "A", bay: "Floor bay G3", bulky: true },
   { n: "Asian Paints Royale", q: 1, unit: "can", size: "10 L", kg: 13, rs: 3890, ic: "\uD83E\uDEA3", g: "B", bay: "Aisle B / Rack 2" },
   { n: "Birla White Cement", q: 2, unit: "bags", size: "5 kg each", kg: 10, rs: 490, ic: "\u26AA", g: "B", bay: "Aisle B / Rack 3" },
   { n: "Fevicol Marine Waterproof Adhesive", q: 2, unit: "jars", size: "1 kg each", kg: 2, rs: 728, g: "B", ic: "\uD83E\uDDF4", bay: "Aisle B / Rack 1" },
-  { n: "Polycab Green Wire", q: 1, unit: "bundle", size: "90 m", kg: 6, rs: 2240, ic: "\uD83D\uDD0C", g: "C", bay: "Aisle C / Rack 2" },
+  { n: "Polycab Green Wire", q: 1, unit: "roll", size: "90 m", kg: 6, rs: 2240, ic: "\uD83D\uDD0C", g: "C", bay: "Aisle C / Rack 2" },
   { n: "Ashirvad Flowguard CPVC 90 degree Elbow", q: 20, unit: "pieces", size: "1 inch", kg: 2, rs: 720, ic: "\uD83D\uDD29", g: "C", bay: "Counter R" }
 ];
 
@@ -66,11 +99,11 @@ export const CUSTOMERS = [
 ];
 
 export const PARTNERS = [
-  { id: "p1", name: "Ramesh Yadav", veh: "Tata Ace", cap: 700, km: 0.4, rating: 4.8, status: "available" },
-  { id: "p2", name: "Imran Shaikh", veh: "Bike", cap: 35, km: 0.9, rating: 4.7, status: "available" },
-  { id: "p3", name: "Kulveer Singh", veh: "Mahindra Jeeto", cap: 600, km: 1.6, rating: 4.6, status: "available" },
-  { id: "p4", name: "Suresh Naik", veh: "Bike", cap: 35, km: 2.1, rating: 4.9, status: "available" },
-  { id: "p5", name: "Arif Pasha", veh: "Tata Ace", cap: 700, km: 3.2, rating: 4.5, status: "on trip" }
+  { id: "p1", name: "Ramesh Yadav", veh: "Tata Ace", type: "four", cap: 700, km: 0.4, rating: 4.8, status: "available" },
+  { id: "p2", name: "Imran Shaikh", veh: "Bike", type: "bike", cap: 35, km: 0.9, rating: 4.7, status: "available" },
+  { id: "p3", name: "Kulveer Singh", veh: "Mahindra Jeeto", type: "four", cap: 600, km: 1.6, rating: 4.6, status: "available" },
+  { id: "p4", name: "Suresh Naik", veh: "Bike", type: "bike", cap: 35, km: 2.1, rating: 4.9, status: "available" },
+  { id: "p5", name: "Arif Pasha", veh: "Tata Ace", type: "four", cap: 700, km: 3.2, rating: 4.5, status: "on trip" }
 ];
 
 /* The order state machine, in sequence. gate_move loops back to at_gate. */
@@ -96,6 +129,8 @@ export const slaLeft = (o, demo) => SLA_MS - (demo - o.placedAt);
 export const pick = (a) => a[Math.floor(Math.random() * a.length)];
 /* What the trade counts: bags, lengths, boxes, not kilos. */
 export const unitsOf = (items) => items.reduce((a, b) => a + b.q, 0);
+export const isBulky = (items) => items.some((i) => i.bulky);
+export const canCarry = (p, o) => p.cap >= o.kg && (!isBulky(o.items) || p.type === "four");
 export const unitLine = (it) => `${it.q} ${it.unit} \u00b7 ${it.size}`;
 
 export const rs = (n) => "\u20B9" + Number(n).toLocaleString("en-IN");

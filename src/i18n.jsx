@@ -222,6 +222,20 @@ const HI = {
   "Submit rating": "रेटिंग भेजें",
   Skip: "छोड़ें",
 
+  Home: "होम",
+  Emergency: "इमरजेंसी",
+  Help: "मदद",
+  "Hand this order to another partner?": "यह ऑर्डर किसी और पार्टनर को दे दें?",
+  "Trip in progress": "ट्रिप चल रही है",
+  "Order {id}": "ऑर्डर {id}",
+  Resume: "फिर से शुरू करें",
+  Session: "सेशन",
+  Entry: "प्रवेश",
+  "Photo of the unloaded material": "उतारे गए सामान की फोटो",
+  "Stack it at the drop point and take one clear photo": "सामान ड्रॉप पॉइंट पर रखें और एक साफ़ फोटो लें",
+  "{amt} received on UPI from {name}": "{name} से UPI पर {amt} मिले",
+  "{n} min": "{n} मिनट",
+
   // toasts
   "{name} is nearest at {km} km": "{name} सबसे नज़दीक हैं, {km} किमी पर",
   "No partner can carry {kg} kg. Order held for the next Tata Ace.":
@@ -257,7 +271,9 @@ const HI = {
     "ऑर्डर {id} 60 मिनट पार कर गया। ऑप्स को बता दिया गया।",
   "You cannot go offline during a live trip. Use the edge case control to simulate a drop in connectivity.":
     "चालू ट्रिप के दौरान ऑफ़लाइन नहीं हो सकते। नेटवर्क जाने की स्थिति डेमो कंट्रोल से आज़माएँ।",
-  "Finish the active trip first": "पहले चालू ट्रिप पूरी करें"
+  "Finish the active trip first": "पहले चालू ट्रिप पूरी करें",
+  "Trip handed over. {name} is taking this order.": "ट्रिप सौंप दी गई। {name} यह ऑर्डर ले रहे हैं।",
+  "Trip released. Ops is finding another partner.": "ट्रिप छोड़ दी गई। ऑप्स दूसरा पार्टनर ढूँढ रहे हैं।"
 };
 
 const DICTS = { en: {}, hi: HI };

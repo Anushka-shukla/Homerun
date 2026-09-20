@@ -109,10 +109,7 @@ function PartnerApp() {
             <OpsConsole state={state} live={live} dispatch={dispatch} />
           </>
         ) : (
-          <p className="boardhint">
-            The ops dashboard reads the same orders. Show it to watch the 60 minute clock and the kanban move as you drive
-            the trip{boardTab ? ", or keep using the board tab you already have open" : ""}.
-          </p>
+          <p className="boardhint">{boardTab ? "The ops board tab you opened is reading the same orders." : ""}</p>
         )}
       </main>
     </>

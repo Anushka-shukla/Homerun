@@ -1,10 +1,9 @@
 # HomeRun delivery partner app, MVP
 
-A working delivery partner app for HomeRun, plus an internal ops console that
-reads the same orders. Built as a demo, not a prototype deck: you can run a
-whole trip from order intake to cash collected.
+MVP of delivery partner app for HomeRun, plus an internal ops console that
+reads the same orders. 
 
-**Live demo:** _add your Vercel link_
+**Live demo:** https://homerundeliverypartnerapp.vercel.app/
 **Run locally:** `npm install && npm run dev`
 
 ---
@@ -13,8 +12,7 @@ whole trip from order intake to cash collected.
 
 - **The 60 minute promise is the product.** HomeRun sells construction material
   in 60 minutes. Everything the partner app does either protects that number or
-  explains where it went. So I built the clock in first and designed screens
-  around it, rather than designing screens and adding a timer later.
+  explains where it went.
 
 - **This is not food delivery with heavier bags.** A cement order is 150 kg. It
   cannot go on a bike, it cannot be carried across a store floor, and it is not
