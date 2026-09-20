@@ -1,6 +1,21 @@
+import { readSnapshot } from "./channel.js";
 import { CATALOG, GATES, CUSTOMERS, PARTNERS, FLOW, SLA_MS, STORE, STORES, PARTNER_START, stage, pick, rs, legPath, pathLength, canCarry, isBulky } from "./data.js";
 
 let toastSeq = 1;
+
+/* A refresh should not throw away a trip in progress. The snapshot the ops
+   tab already reads doubles as the rehydration source. */
+export function bootState() {
+  try {
+    const saved = readSnapshot();
+    if (saved && saved.onboarded && Array.isArray(saved.orders) && saved.orders.length) {
+      return { ...saved, toasts: [], busy: false, scan: null };
+    }
+  } catch {
+    /* corrupt snapshot, start clean */
+  }
+  return initialState();
+}
 
 export function initialState() {
   const s = {
@@ -86,6 +101,8 @@ function makeOrder(s, opts = {}) {
     flags: [],
     next: 0,
     collected: 0,
+    cashTaken: 0,
+    upiPaid: 0,
     shortBy: 0
   };
   o.ts = { placed: o.placedAt };
@@ -200,7 +217,6 @@ function assign(s, o, skipId) {
   o.partner = p.id;
   o.status = "assigned";
   s.me = p.id;
-  s.online = true;
   say(s, "{name} is nearest at {km} km", { name: p.name, km: p.km });
 }
 
@@ -235,8 +251,8 @@ function act(s, a) {
   const o = liveOrder(s);
   if (a === "simulate") {
     if (s.busy) return;
+    if (!s.online) { say(s, "Go online first to receive orders", null, true); return; }
     if (o && o.status !== "completed") { say(s, "Finish the active trip first"); return; }
-    s.online = true;
     s.busy = true;
     s.photo = false;
     s.otp = "";
@@ -321,6 +337,8 @@ function act(s, a) {
       break;
     case "cash_collected":
       o.collected = o.amount;
+      o.cashTaken = o.amount;
+      o.upiPaid = 0;
       o.shortBy = 0;
       o.status = "paid";
       say(s, "{amt} collected from {name}", { amt: rs(o.amount), name: o.cust.name });
@@ -329,6 +347,7 @@ function act(s, a) {
       const short = Math.round(o.amount * 0.15);
       o.shortBy = short;
       o.collected = o.amount - short;
+      o.cashTaken = o.collected;
       s.upi = { amount: short, cash: o.collected };
       say(s, "Short by {amt}. Take the balance on UPI before you leave.", { amt: rs(short) }, true);
       break;
@@ -336,19 +355,24 @@ function act(s, a) {
     case "upi_full":
       s.upi = { amount: o.amount, cash: 0 };
       o.collected = 0;
+      o.cashTaken = 0;
       o.shortBy = 0;
       break;
     case "upi_received":
       o.collected = o.amount;
       o.shortBy = 0;
       o.upiPaid = s.upi ? s.upi.amount : 0;
+      o.cashTaken = o.amount - o.upiPaid;
       s.upi = null;
       o.status = "paid";
-      say(s, "{total} settled, {upi} of it by UPI", { total: rs(o.amount), upi: rs(o.upiPaid) });
+      say(s, o.cashTaken > 0 ? "{total} settled, {upi} of it by UPI" : "{total} paid by UPI",
+          { total: rs(o.amount), upi: rs(o.upiPaid) });
       break;
     case "upi_back":
       s.upi = null;
       o.collected = 0;
+      o.cashTaken = 0;
+      o.upiPaid = 0;
       o.shortBy = 0;
       break;
     case "complete":

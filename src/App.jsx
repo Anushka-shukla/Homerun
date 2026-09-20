@@ -1,5 +1,5 @@
 import React, { useEffect, useReducer, useRef, useState } from "react";
-import { reducer, initialState, liveOrder } from "./state.js";
+import { reducer, bootState, liveOrder } from "./state.js";
 import Phone from "./components/Phone.jsx";
 import OpsPage from "./OpsPage.jsx";
 import OpsConsole from "./ops/OpsConsole.jsx";
@@ -12,7 +12,7 @@ export default function App() {
 }
 
 function PartnerApp() {
-  const [state, dispatch] = useReducer(reducer, undefined, initialState);
+  const [state, dispatch] = useReducer(reducer, undefined, bootState);
   const live = liveOrder(state);
   const chan = useRef(null);
   const latest = useRef(state);
